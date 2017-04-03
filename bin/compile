@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Exit early if any command fails or variable undefined
+set -eu
+
+indent() {
+    sed -u 's/^/      /'
+}
+
+build_dir="$1"
+cache_dir="$2"
+env_dir="$3"
+
+export RUSTUP_HOME="$cache_dir/.multirust"
+export CARGO_HOME="$cache_dir/.cargo"
+
+bin_dir="$CARGO_HOME/bin"
+mkdir -p "$bin_dir"
+
+export PATH="$bin_dir:$PATH"
+
+if ! type rustup > /dev/null 2>&1; then
+    rustup_url="https://sh.rustup.rs"
+
+    echo "-----> Rustup not found, installing from $rustup_url"
+
+    rustup_install="$cache_dir/rustup-install.sh"
+    curl "$rustup_url" -sSf > "$rustup_install"
+
+    chmod +x "$rustup_install"
+    "$rustup_install" -y | indent
+    rm "$rustup_install"
+fi
+
+echo "-----> Checking Rustup for updates"
+rustup self update | indent
+rustup update | indent
+
+echo "-----> Building project"
+cd "$build_dir"
+cargo build --release | indent
+
+echo "-----> Finished build"
