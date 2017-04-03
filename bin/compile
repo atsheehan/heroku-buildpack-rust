@@ -4,7 +4,7 @@
 set -eu
 
 indent() {
-    sed -u 's/^/      /'
+    sed -u 's/^\s*/       /'
 }
 
 build_dir="$1"
@@ -28,16 +28,16 @@ if ! type rustup > /dev/null 2>&1; then
     curl "$rustup_url" -sSf > "$rustup_install"
 
     chmod +x "$rustup_install"
-    "$rustup_install" -y | indent
+    "$rustup_install" -y 2>&1 | indent
     rm "$rustup_install"
 fi
 
 echo "-----> Checking Rustup for updates"
-rustup self update | indent
-rustup update | indent
+rustup self update 2>&1 | indent
+rustup update 2>&1 | indent
 
 echo "-----> Building project"
 cd "$build_dir"
-cargo build --release | indent
+cargo build --release 2>&1 | indent
 
 echo "-----> Finished build"
